@@ -1,6 +1,7 @@
 package com.doobot.database;
 
 import com.doobot.entities.Team;
+import net.dv8tion.jda.api.entities.User;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -38,11 +39,11 @@ public class TeamsDB {
         }
     }
 
-    public void AddNewTeam(String teamName, String captain, String membersCommaSplit, String matchTime){
+    public void AddNewTeam(String teamName, User captain, String membersCommaSplit, String matchTime){
         List<String> members = Arrays.asList(membersCommaSplit.split(","));
         Date matchTimeAsDate = null;
         try {
-            matchTimeAsDate = new SimpleDateFormat("YYYY-MM-DD HH:MM:SS.SSS").parse(matchTime);
+            matchTimeAsDate = new SimpleDateFormat("MM/dd/yy hh:mm a").parse(matchTime);
             Team team = new Team(teamName, captain, members);
             team.setMatchTime(matchTimeAsDate);
         } catch (ParseException e) {
