@@ -3,6 +3,12 @@ package com.doobot.services;
 import com.doobot.database.TeamsDB;
 import net.dv8tion.jda.api.entities.User;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
+
 public class TeamService {
     TeamsDB teamsDB;
     public TeamService(){
@@ -16,5 +22,30 @@ public class TeamService {
                 "!confirm - Allows you to confirm the result of the most recent result report \n" +
                 "!challenge - Calls a tournament admin to challenge the recently reported match scoring\n" +
                 "!reset - Resets the series score\n";
+    }
+
+    public Date parseMatchTime(String messageString){
+
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy hh:mm a");
+        formatter.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+
+        StringTokenizer tokens = new StringTokenizer(messageString, " ");
+        if(tokens.countTokens() == 4) {
+            try {
+                tokens.nextToken();
+                String dateString = tokens.nextToken();
+                String timeString = tokens.nextToken();
+                String periodString = tokens.nextToken();
+
+                String concatenatedString = dateString + timeString + periodString;
+                Date date = formatter.parse(concatenatedString);
+
+                return date;
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
     }
 }
