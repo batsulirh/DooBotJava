@@ -41,11 +41,13 @@ public class TeamListener extends ListenerAdapter {
             String teamName = tokenizer.nextToken();
             Team team = new Team(teamName, captain, mentionedMembers);
 
-            msgChannel.sendMessage("Team " + teamName + " has been created with the following roster: \n" + team.getCaptain().getAsMention()).queue();
+            msgChannel.sendMessage("Team " + teamName + " has been created with the following roster: \nTeam Captain: " + team.getCaptain().getAsMention()).queue();
             for(Member member : team.getMembers()){
                 i++;
-                msgChannel.sendMessage("Member " + i + " " + member.getAsMention()).queue();
+                msgChannel.sendMessage("Member " + i + ": " + member.getAsMention()).queue();
             }
+
+        }else if(msg.getContentDisplay().startsWith("!setMatch")) {
 
         }else if(msg.getContentDisplay().startsWith("!setTime")) {
             Date date = teamService.parseMatchTime(msg.getContentRaw());
