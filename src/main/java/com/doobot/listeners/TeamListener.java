@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class TeamListener extends ListenerAdapter {
     TeamService teamService;
+
     public TeamListener(){
         teamService = new TeamService();
     }

@@ -9,6 +9,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.nio.file.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class Main extends ListenerAdapter {
     public static void main(String[] args) {
@@ -19,7 +22,6 @@ public class Main extends ListenerAdapter {
             JDA jda = JDABuilder.createDefault(botToken)
                     .setActivity(Activity.playing("The Management Game"))
                     .addEventListeners(new TeamListener()).build();
-
             jda.awaitReady();
         } catch (LoginException e) {
             e.printStackTrace();
