@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.User;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
@@ -26,10 +27,11 @@ public class TeamService {
 
     public Date parseMatchTime(String messageString){
 
-        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy hh:mm a");
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy hh:mm a", Locale.US);
         formatter.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
         StringTokenizer tokens = new StringTokenizer(messageString, " ");
+        Date date;
         if(tokens.countTokens() == 4) {
             try {
                 tokens.nextToken();
@@ -37,8 +39,8 @@ public class TeamService {
                 String timeString = tokens.nextToken();
                 String periodString = tokens.nextToken();
 
-                String concatenatedString = dateString + timeString + periodString;
-                Date date = formatter.parse(concatenatedString);
+                String concatenatedString = dateString +  " " + timeString + " " + periodString;
+                date = formatter.parse(concatenatedString);
 
                 return date;
             } catch (ParseException e) {
@@ -46,6 +48,6 @@ public class TeamService {
                 return null;
             }
         }
-
+        return null;
     }
 }

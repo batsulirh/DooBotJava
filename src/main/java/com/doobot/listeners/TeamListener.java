@@ -33,6 +33,7 @@ public class TeamListener extends ListenerAdapter {
 
         }else if(msg.getContentDisplay().startsWith("!setTime")) {
             Date date = teamService.parseMatchTime(msg.getContentRaw());
+
             msgChannel.sendMessage("Your match time is now set to: " + date.toString() +
                     "\n" +
                     "When setting up the lobby for this series, please remember to set the team names to their respective team names.\n" +
