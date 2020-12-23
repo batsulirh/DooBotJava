@@ -1,5 +1,6 @@
 package com.doobot.entities;
 
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
 import java.util.Arrays;
@@ -8,8 +9,8 @@ import java.util.List;
 
 public class Team {
     private String name;
-    private User captain;
-    private List<String> members;
+    private Member captain;
+    private List<Member> members;
     private Date matchTime;
     private Match match;
 
@@ -18,7 +19,7 @@ public class Team {
         captain = null;
     }
 
-    public Team(String name, User captain, List<String> members){
+    public Team(String name, Member captain, List<Member> members){
         this.name = name;
         this.captain = captain;
         this.members = members;
@@ -32,24 +33,24 @@ public class Team {
         this.name = name;
     }
 
-    public User getCaptain() {
+    public Member getCaptain() {
         return captain;
     }
 
-    public void setCaptain(User captain) {
+    public void setCaptain(Member captain) {
         this.captain = captain;
     }
 
-    public List<String> getMembers() {
+    public List<Member> getMembers() {
         return members;
     }
 
-    public void setMembers(List<String> members) {
+    public void setMembers(List<Member> members) {
         this.members = members;
     }
 
-    public void setMembers(String members){
-        this.members = Arrays.asList(members.split(","));
+    public void addMember(Member member){
+        this.members.add(member);
     }
 
     public Date getMatchTime() {

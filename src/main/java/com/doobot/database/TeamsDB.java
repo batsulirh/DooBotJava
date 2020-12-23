@@ -38,7 +38,7 @@ public class TeamsDB {
             e.printStackTrace();
         }
     }
-
+/*
     public void AddNewTeam(String teamName, User captain, String membersCommaSplit, String matchTime){
         List<String> members = Arrays.asList(membersCommaSplit.split(","));
         Date matchTimeAsDate = null;
@@ -50,7 +50,7 @@ public class TeamsDB {
             e.printStackTrace();
         }
     }
-
+*/
     public Team GetTeam() {
         return null;
     }
