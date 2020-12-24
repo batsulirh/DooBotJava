@@ -11,8 +11,6 @@ public class Team {
     private String name;
     private Member captain;
     private List<Member> members;
-    private Date matchTime;
-    private Match match;
 
     public Team(){
         name = "";
@@ -51,21 +49,5 @@ public class Team {
 
     public void addMember(Member member){
         this.members.add(member);
-    }
-
-    public Date getMatchTime() {
-        return matchTime;
-    }
-
-    public void setMatchTime(Date matchTime) {
-        this.matchTime = matchTime;
-    }
-
-    public Match getMatch() {
-        return match;
-    }
-
-    public void setMatch(Match match) {
-        this.match = match;
     }
 }
