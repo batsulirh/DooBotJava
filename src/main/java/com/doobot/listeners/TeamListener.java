@@ -1,5 +1,6 @@
 package com.doobot.listeners;
 
+import com.doobot.database.TeamsDB;
 import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
 import net.dv8tion.jda.api.entities.Member;
@@ -15,13 +16,15 @@ import java.util.*;
 
 public class TeamListener extends ListenerAdapter {
     TeamService teamService;
+    TeamsDB teamsDB;
 
     public TeamListener(){
         teamService = new TeamService();
+        teamsDB = new TeamsDB();
     }
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        User requestUser = event.getAuthor();
+        Member requestUser = event.getMember();
         Message msg = event.getMessage();
         MessageChannel msgChannel = msg.getChannel();
 
@@ -41,11 +44,19 @@ public class TeamListener extends ListenerAdapter {
             String teamName = tokenizer.nextToken();
             Team team = new Team(teamName, captain, mentionedMembers);
 
-            msgChannel.sendMessage("Team " + teamName + " has been created with the following roster: \nTeam Captain: " + team.getCaptain().getAsMention()).queue();
-            for(Member member : team.getMembers()){
-                i++;
-                msgChannel.sendMessage("Member " + i + ": " + member.getAsMention()).queue();
+            String result = teamsDB.AddNewTeam(team);
+
+            if(result == "") {
+                msgChannel.sendMessage("Team " + teamName + " has been created with the following roster: \nTeam Captain: " + team.getCaptain().getAsMention()).queue();
+                for(Member member : team.getMembers()) {
+                    i++;
+                    msgChannel.sendMessage("Member " + i + ": " + member.getAsMention()).queue();
+                }
             }
+            else {
+                msgChannel.sendMessage(result).queue();
+            }
+
 
         }else if(msg.getContentDisplay().startsWith("!setMatch")) {
 
