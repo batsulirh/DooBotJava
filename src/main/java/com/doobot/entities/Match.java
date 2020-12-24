@@ -1,9 +1,12 @@
 package com.doobot.entities;
 
+import java.util.Date;
+
 public class Match {
     private Team teamOne;
     private Team teamTwo;
     private int games;
+    private Date matchTime;
 
     public Match(){
         teamOne = null;
@@ -42,4 +45,11 @@ public class Match {
         this.games = games;
     }
 
+    public Date getMatchTime() {
+        return matchTime;
+    }
+
+    public void setMatchTime(Date matchTime) {
+        this.matchTime = matchTime;
+    }
 }

@@ -1,6 +1,8 @@
 package com.doobot.listeners;
 
+import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -9,9 +11,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
+import java.util.*;
 
 public class TeamListener extends ListenerAdapter {
     TeamService teamService;
@@ -30,6 +30,24 @@ public class TeamListener extends ListenerAdapter {
             msgChannel.sendMessage(helpMessage).queue();
 
         }else if(msg.getContentDisplay().startsWith("!setTeam")) {
+            StringTokenizer tokenizer = new StringTokenizer(msg.getContentRaw(), " ");
+            List<Member> mentionedMembers = new ArrayList<>();
+            mentionedMembers.addAll(msg.getMentionedMembers());
+            int i = 0;
+
+            Member captain = mentionedMembers.get(0);
+            mentionedMembers.remove(0);
+            tokenizer.nextToken();
+            String teamName = tokenizer.nextToken();
+            Team team = new Team(teamName, captain, mentionedMembers);
+
+            msgChannel.sendMessage("Team " + teamName + " has been created with the following roster: \nTeam Captain: " + team.getCaptain().getAsMention()).queue();
+            for(Member member : team.getMembers()){
+                i++;
+                msgChannel.sendMessage("Member " + i + ": " + member.getAsMention()).queue();
+            }
+
+        }else if(msg.getContentDisplay().startsWith("!setMatch")) {
 
         }else if(msg.getContentDisplay().startsWith("!setTime")) {
             Date date = teamService.parseMatchTime(msg.getContentRaw());
