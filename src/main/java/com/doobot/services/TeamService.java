@@ -1,14 +1,13 @@
 package com.doobot.services;
 
 import com.doobot.database.TeamsDB;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
+import java.util.*;
 
 public class TeamService {
     TeamsDB teamsDB;
@@ -16,8 +15,8 @@ public class TeamService {
         teamsDB = new TeamsDB();
     }
 
-    public String GetHelpInfo(User requestUser){
-        return String.format("Hello {0}, You have access to the following commands: \n", requestUser.getName()) +
+    public String GetHelpInfo(Member requestUser){
+        return String.format("Hello %s, You have access to the following commands: \n", requestUser.getUser().getName()) +
                 "!setTime (mm/dd/yy) (AM/PM) - Sets the time for your next match \n" +
                 "!report (Match1) (Team 1) (W/L) - Reports your match as complete with the passed result \n" +
                 "!confirm - Allows you to confirm the result of the most recent result report \n" +
@@ -49,5 +48,22 @@ public class TeamService {
             }
         }
         return null;
+    }
+
+    public static String parseMembersToString(List<Member> members){
+        StringBuilder memberString = new StringBuilder();
+        for (Member member : members) {
+            if(memberString.length() > 0)
+                memberString.append(",");
+            memberString.append(member.getId());
+        }
+
+        return memberString.toString();
+    }
+
+    public static List<Member> parseMembersToList(String members){
+        List<Member> membersList= new ArrayList<>();
+
+        return membersList;
     }
 }
