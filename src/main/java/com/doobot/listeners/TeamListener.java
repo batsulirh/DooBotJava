@@ -1,8 +1,10 @@
 package com.doobot.listeners;
 
 import com.doobot.database.TeamsDB;
+import com.doobot.entities.Match;
 import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -21,6 +23,7 @@ public class TeamListener extends ListenerAdapter {
     public TeamListener(){
         teamService = new TeamService();
         teamsDB = new TeamsDB();
+
     }
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
@@ -28,7 +31,9 @@ public class TeamListener extends ListenerAdapter {
         Message msg = event.getMessage();
         MessageChannel msgChannel = msg.getChannel();
 
-        if(msg.getContentDisplay().equals("!help")) {
+        if(event.getAuthor().isBot()){
+            return;
+        }else if(msg.getContentDisplay().equals("!help")) {
             String helpMessage = teamService.GetHelpInfo(requestUser);
             msgChannel.sendMessage(helpMessage).queue();
 
@@ -45,7 +50,6 @@ public class TeamListener extends ListenerAdapter {
             Team team = new Team(teamName, captain, mentionedMembers);
 
             String result = teamsDB.AddNewTeam(team);
-
             if(result == "") {
                 msgChannel.sendMessage("Team " + teamName + " has been created with the following roster: \nTeam Captain: " + team.getCaptain().getAsMention()).queue();
                 for(Member member : team.getMembers()) {
@@ -59,7 +63,11 @@ public class TeamListener extends ListenerAdapter {
 
 
         }else if(msg.getContentDisplay().startsWith("!setMatch")) {
+            String[] requestedTeams = msg.getContentRaw().split(" ");
+            Team team1 = teamsDB.GetTeam(requestedTeams[1], event.getGuild());
+            Team team2 = teamsDB.GetTeam(requestedTeams[2], event.getGuild());
 
+            teamsDB.AddMatch(new Match(team1, team2));
         }else if(msg.getContentDisplay().startsWith("!setTime")) {
             Date date = teamService.parseMatchTime(msg.getContentRaw());
 

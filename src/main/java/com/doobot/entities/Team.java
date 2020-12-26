@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 public class Team {
+    private int id;
     private String name;
     private Member captain;
     private List<Member> members;
@@ -21,6 +22,14 @@ public class Team {
         this.name = name;
         this.captain = captain;
         this.members = members;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
