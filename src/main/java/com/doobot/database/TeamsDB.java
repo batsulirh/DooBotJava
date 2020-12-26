@@ -3,22 +3,16 @@ package com.doobot.database;
 import com.doobot.entities.Match;
 import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TeamsDB {
@@ -48,10 +42,6 @@ public class TeamsDB {
     public String AddNewTeam(Team team) {
         String errorString = "";
         try {
-            StringBuilder memberString = new StringBuilder();
-            for (Member member : team.getMembers()) {
-                memberString.append(",").append(member.getUser().getName());
-            }
             String sql = String.format("""
                     INSERT INTO teams (name, captainid, memberids)\s
                     values('%s','%s','%s');
@@ -69,9 +59,32 @@ public class TeamsDB {
         return errorString;
     }
 
-    public Team GetTeam() {
+    public Team GetTeam(String teamName, Guild guild) {
+        ResultSet results;
+        Team team = null;
+        String sql = String.format("""
+                SELECT id, name, captainid, memberids
+                from teams
+                where name = '%s'
+                """, teamName);
+        try {
+            PreparedStatement stmt = teamsConn.prepareStatement(sql);
+            results = stmt.executeQuery();
+            if(results.first()) {
+                Member captain = guild.getMemberById(results.getString("captainid"));
+                List<String> memberStrings = TeamService.parseMembersToList(results.getString("memberids"));
+                List<Member> memberList = new ArrayList<>();
+                memberStrings.forEach(m -> memberList.add(guild.getMemberById(m)));
+                team = new Team(results.getString("name"), captain, memberList);
+                team.setId(results.getInt("id"));
 
-        return null;
+                return team;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return team;
     }
 
     public void EditTeam(Team team){
@@ -80,6 +93,11 @@ public class TeamsDB {
 
     public void DeleteTeam(Team team) {
 
+    }
+
+    public String AddMatch(Match match){
+
+        return "";
     }
 
     public Match GetMatch() {

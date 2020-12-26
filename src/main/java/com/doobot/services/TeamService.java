@@ -1,6 +1,7 @@
 package com.doobot.services;
 
 import com.doobot.database.TeamsDB;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
@@ -61,8 +62,9 @@ public class TeamService {
         return memberString.toString();
     }
 
-    public static List<Member> parseMembersToList(String members){
-        List<Member> membersList= new ArrayList<>();
+    public static List<String> parseMembersToList(String memberIds){
+        List<String> membersList= new ArrayList<>();
+        String[] splitMembers = memberIds.split(",");
 
         return membersList;
     }
