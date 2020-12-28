@@ -12,7 +12,6 @@ public class Team {
     private Member captain;
     private List<Member> members;
     private Date matchTime;
-    private Match match;
 
     public Team(){
         name = "";
@@ -61,11 +60,4 @@ public class Team {
         this.matchTime = matchTime;
     }
 
-    public Match getMatch() {
-        return match;
-    }
-
-    public void setMatch(Match match) {
-        this.match = match;
-    }
 }
