@@ -1,7 +1,10 @@
 package com.doobot.listeners;
 
+import com.doobot.database.TeamsDB;
+import com.doobot.entities.Match;
 import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -15,17 +18,22 @@ import java.util.*;
 
 public class TeamListener extends ListenerAdapter {
     TeamService teamService;
+    TeamsDB teamsDB;
 
     public TeamListener(){
         teamService = new TeamService();
+        teamsDB = new TeamsDB();
+
     }
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        User requestUser = event.getAuthor();
+        Member requestUser = event.getMember();
         Message msg = event.getMessage();
         MessageChannel msgChannel = msg.getChannel();
 
-        if(msg.getContentDisplay().equals("!help")) {
+        if(event.getAuthor().isBot()){
+            return;
+        }else if(msg.getContentDisplay().equals("!help")) {
             String helpMessage = teamService.GetHelpInfo(requestUser);
             msgChannel.sendMessage(helpMessage).queue();
 
@@ -41,14 +49,25 @@ public class TeamListener extends ListenerAdapter {
             String teamName = tokenizer.nextToken();
             Team team = new Team(teamName, captain, mentionedMembers);
 
-            msgChannel.sendMessage("Team " + teamName + " has been created with the following roster: \nTeam Captain: " + team.getCaptain().getAsMention()).queue();
-            for(Member member : team.getMembers()){
-                i++;
-                msgChannel.sendMessage("Member " + i + ": " + member.getAsMention()).queue();
+            String result = teamsDB.AddNewTeam(team);
+            if(result == "") {
+                msgChannel.sendMessage("Team " + teamName + " has been created with the following roster: \nTeam Captain: " + team.getCaptain().getAsMention()).queue();
+                for(Member member : team.getMembers()) {
+                    i++;
+                    msgChannel.sendMessage("Member " + i + ": " + member.getAsMention()).queue();
+                }
+            }
+            else {
+                msgChannel.sendMessage(result).queue();
             }
 
-        }else if(msg.getContentDisplay().startsWith("!setMatch")) {
 
+        }else if(msg.getContentDisplay().startsWith("!setMatch")) {
+            String[] requestedTeams = msg.getContentRaw().split(" ");
+            Team team1 = teamsDB.GetTeam(requestedTeams[1], event.getGuild());
+            Team team2 = teamsDB.GetTeam(requestedTeams[2], event.getGuild());
+
+            teamsDB.AddMatch(new Match(team1, team2));
         }else if(msg.getContentDisplay().startsWith("!setTime")) {
             Date date = teamService.parseMatchTime(msg.getContentRaw());
 

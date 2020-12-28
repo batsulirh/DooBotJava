@@ -8,10 +8,10 @@ import java.util.Date;
 import java.util.List;
 
 public class Team {
+    private int id;
     private String name;
     private Member captain;
     private List<Member> members;
-    private Date matchTime;
 
     public Team(){
         name = "";
@@ -22,6 +22,14 @@ public class Team {
         this.name = name;
         this.captain = captain;
         this.members = members;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -51,13 +59,4 @@ public class Team {
     public void addMember(Member member){
         this.members.add(member);
     }
-
-    public Date getMatchTime() {
-        return matchTime;
-    }
-
-    public void setMatchTime(Date matchTime) {
-        this.matchTime = matchTime;
-    }
-
 }

@@ -2,3 +2,5 @@ src/main/resources/token.txt
 target/classes/token.txt
 /src/main/java/com/doobot/database/teams.db
 /.idea/
+/target/
+DoobotJV.iml

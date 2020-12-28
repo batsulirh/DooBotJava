@@ -3,6 +3,7 @@ package com.doobot.entities;
 import java.util.Date;
 
 public class Match {
+    private int id;
     private Team teamOne;
     private Team teamTwo;
     private int games;
@@ -14,12 +15,19 @@ public class Match {
         games = 0;
     }
 
-    public Match(Team teamOne, Team teamTwo, int games){
+    public Match(Team teamOne, Team teamTwo){
         this.teamOne = teamOne;
         this.teamTwo = teamTwo;
-        this.games = games;
+        this.games = 0;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public Team getTeamOne() {
         return teamOne;
