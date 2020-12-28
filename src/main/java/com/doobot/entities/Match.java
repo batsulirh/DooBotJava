@@ -15,10 +15,10 @@ public class Match {
         games = 0;
     }
 
-    public Match(Team teamOne, Team teamTwo){
+    public Match(Team teamOne, Team teamTwo, int games){
         this.teamOne = teamOne;
         this.teamTwo = teamTwo;
-        this.games = 0;
+        this.games = games;
     }
 
     public int getId() {

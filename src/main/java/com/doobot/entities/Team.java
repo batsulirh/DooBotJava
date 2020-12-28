@@ -3,6 +3,7 @@ package com.doobot.entities;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -16,6 +17,7 @@ public class Team {
     public Team(){
         name = "";
         captain = null;
+        members = new ArrayList<Member>();
     }
 
     public Team(String name, Member captain, List<Member> members){
@@ -58,5 +60,9 @@ public class Team {
 
     public void addMember(Member member){
         this.members.add(member);
+    }
+
+    public void addMembers(List<Member> member){
+        this.members.addAll(member);
     }
 }

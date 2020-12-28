@@ -70,7 +70,7 @@ public class TeamsDB {
         try {
             PreparedStatement stmt = teamsConn.prepareStatement(sql);
             results = stmt.executeQuery();
-            if(results.first()) {
+            if(results.next()) {
                 Member captain = guild.getMemberById(results.getString("captainid"));
                 List<String> memberStrings = TeamService.parseMembersToList(results.getString("memberids"));
                 List<Member> memberList = new ArrayList<>();
