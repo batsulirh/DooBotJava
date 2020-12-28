@@ -5,21 +5,18 @@ import com.doobot.entities.Match;
 import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class TeamListener extends ListenerAdapter {
     TeamService teamService;
     TeamsDB teamsDB;
-
     public TeamListener(){
         teamService = new TeamService();
         teamsDB = new TeamsDB();
@@ -30,6 +27,8 @@ public class TeamListener extends ListenerAdapter {
         Member requestUser = event.getMember();
         Message msg = event.getMessage();
         MessageChannel msgChannel = msg.getChannel();
+        Guild guild = event.getGuild();
+
 
         if(event.getAuthor().isBot()){
             return;
@@ -67,7 +66,43 @@ public class TeamListener extends ListenerAdapter {
             Team team1 = teamsDB.GetTeam(requestedTeams[1], event.getGuild());
             Team team2 = teamsDB.GetTeam(requestedTeams[2], event.getGuild());
 
-            teamsDB.AddMatch(new Match(team1, team2));
+            Team bothTeams = new Team();
+            bothTeams.addMembers(team1.getMembers());
+            bothTeams.addMembers(team2.getMembers());
+
+            teamsDB.AddMatch(new Match(team1, team2, Integer.parseInt(requestedTeams[3])));
+
+            try {
+                Category category = guild.createCategory(team1.getName() + " vs " + team2.getName()).submit().get();
+                TextChannel textChannel = category.createTextChannel("match-schedule").submit().get();
+                VoiceChannel team1Voice = category.createVoiceChannel(team1.getName()).submit().get();
+                VoiceChannel team2Voice = category.createVoiceChannel(team2.getName()).submit().get();
+
+                for(Member member: bothTeams.getMembers()){
+                    textChannel.createPermissionOverride(member).setAllow(Permission.VIEW_CHANNEL).setAllow(Permission.MESSAGE_HISTORY).setAllow(Permission.MESSAGE_WRITE).queue();
+                }
+
+                team1Voice.createPermissionOverride(team2.getCaptain()).setDeny(Permission.VOICE_CONNECT).queue();
+                team2Voice.createPermissionOverride(team1.getCaptain()).setDeny(Permission.VOICE_CONNECT).queue();
+
+                for(Member member: team1.getMembers()){
+                    team1Voice.createPermissionOverride(member).setAllow(Permission.VOICE_CONNECT).queue();
+                    team2Voice.createPermissionOverride(member).setDeny(Permission.VOICE_CONNECT).queue();
+                }
+
+                for(Member member: team2.getMembers()){
+                    team2Voice.createPermissionOverride(member).setAllow(Permission.VOICE_CONNECT).queue();
+                    team1Voice.createPermissionOverride(member).setDeny(Permission.VOICE_CONNECT).queue();
+                }
+
+            } catch (InterruptedException e) {
+                msgChannel.sendMessage("Oops! There was an error on our end, please try again").queue();
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+
         }else if(msg.getContentDisplay().startsWith("!setTime")) {
             Date date = teamService.parseMatchTime(msg.getContentRaw());
 
@@ -83,6 +118,17 @@ public class TeamListener extends ListenerAdapter {
         }else if(msg.getContentDisplay().equals("!confirm"))     {
 
         }else if(msg.getContentDisplay().equals("!challenge"))   {
+            //Needs Admin channel ID for implementation
+
+            List<Role> roles = msg.getMember().getRoles();
+
+            for(Role role: roles){
+                if(role.getName().equals( "Team Captain")){
+                    guild.getTextChannelById("admin ChannelID").sendMessage("A match in " + msg.getJumpUrl() +  " has an issue!").queue();
+                }else{
+                    msgChannel.sendMessage("Sorry, but you need to be a Team Captain to raise an issue about a match. Please ask your captain to call an admin with \"!challenge\"").queue();
+                }
+            }
 
         }else if(msg.getContentDisplay().equals("!reset"))       {
 
