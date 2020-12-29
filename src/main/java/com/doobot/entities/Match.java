@@ -8,17 +8,18 @@ public class Match {
     private Team teamTwo;
     private int games;
     private Date matchTime;
+    private boolean completed;
+    private String results;
 
     public Match(){
-        teamOne = null;
-        teamTwo = null;
-        games = 0;
+        this(null, null, 0);
     }
 
     public Match(Team teamOne, Team teamTwo, int games){
         this.teamOne = teamOne;
         this.teamTwo = teamTwo;
         this.games = games;
+        completed = false;
     }
 
     public int getId() {
@@ -59,5 +60,21 @@ public class Match {
 
     public void setMatchTime(Date matchTime) {
         this.matchTime = matchTime;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    public String getResults() {
+        return results;
+    }
+
+    public void setResults(String results) {
+        this.results = results;
     }
 }
