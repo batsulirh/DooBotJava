@@ -114,10 +114,10 @@ public class TeamsDB {
         String matchTime = match.getMatchTime() == null ? "" : match.getMatchTime().toString();
         String sql = String.format("""
                 INSERT INTO matches (teamoneid, teamtwoid, games, matchtime, categoryid, completed, results) VALUES
-                ('%s', '%s', %x, datetime('%s'), '%s', '%s');
+                ('%s', '%s', %x, datetime('%s'), '%s', '%s', '%s');
                 """,
-                match.getTeamOne().getId(), match.getTeamTwo().getId(),
-                match.getGames(), matchTime, match.isCompleted(), match.getResults());
+                match.getTeamOne().getId(), match.getTeamTwo().getId(), match.getGames(),
+                matchTime, match.getCategoryID(), match.isCompleted(), match.getResults());
         try {
             Statement stmt = teamsConn.createStatement();
             stmt.execute(sql);
