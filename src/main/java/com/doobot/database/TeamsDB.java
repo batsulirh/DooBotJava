@@ -65,7 +65,7 @@ public class TeamsDB {
         String sql = String.format("""
                 SELECT id, name, captainid, memberids
                 from teams
-                where name = '%s'
+                where name = '%s';
                 """, teamName);
         try {
             PreparedStatement stmt = teamsConn.prepareStatement(sql);
@@ -87,8 +87,23 @@ public class TeamsDB {
         return team;
     }
 
-    public void EditTeam(Team team){
-
+    public String EditTeam(Team team){
+        String errorString = "";
+        String members = TeamService.parseMembersToString(team.getMembers());
+        String sql = String.format("""
+                UPDATE teams SET
+                    name = %s,\s
+                    captainid = %s,\s
+                    memberids = %s\s
+                WHERE id = %x;
+                """, team.getName(), team.getCaptain().getId(), members, team.getId());
+        try {
+            Statement stmt = teamsConn.createStatement();
+            stmt.execute(sql);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return errorString;
     }
 
     public void DeleteTeam(Team team) {
@@ -96,16 +111,75 @@ public class TeamsDB {
     }
 
     public String AddMatch(Match match){
-
+        String matchTime = match.getMatchTime() == null ? "" : match.getMatchTime().toString();
+        String sql = String.format("""
+                INSERT INTO matches (teamoneid, teamtwoid, games, matchtime, completed, results) VALUES
+                ('%s', '%s', %x, datetime('%s'), '%s', '%s');
+                """,
+                match.getTeamOne().getId(), match.getTeamTwo().getId(),
+                match.getGames(), matchTime, match.isCompleted(), match.getResults());
+        try {
+            Statement stmt = teamsConn.createStatement();
+            stmt.execute(sql);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         return "";
     }
 
-    public Match GetMatch() {
+    public Match GetMatch(Team teamone, Team teamtwo) {
+        ResultSet results;
+        String sql = String.format("""
+                SELECT * FROM matches \s
+                WHERE 
+                    (teamoneid = %x AND teamtwoid = %x)
+                OR 
+                    (teamoneid = %x AND teamtwoid = %x);
+                """, teamone.getId(), teamtwo.getId(),
+                     teamtwo.getId(), teamone.getId());
+
+        try{
+            PreparedStatement stmt = teamsConn.prepareStatement(sql);
+            results = stmt.executeQuery();
+            Match match = null;
+            if(results.next()){
+                match = new Match(teamone, teamtwo, results.getInt("games"));
+                match.setCompleted(results.getBoolean("completed"));
+                match.setMatchTime(results.getDate("matchtime"));
+                match.setResults(results.getString("results"));
+            }
+            return match;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         return null;
     }
 
-    public void EditMatch(Match match){
-
+    public String EditMatch(Match match){
+        String errorString = "";
+        String sql = String.format("""
+                UPDATE matches SET
+                    teamoneid = '%s',\s
+                    teamtwoid = '%s',\s
+                    games = %x,\s
+                    matchtime = datetime('%s'),\s
+                    completed = '%s', \s
+                    results = '%s' \s
+                WHERE id = %x;
+                """, match.getTeamOne().getId(),
+                     match.getTeamTwo().getId(),
+                     match.getGames(),
+                     match.getMatchTime(),
+                     match.isCompleted(),
+                     match.getResults(),
+                     match.getId());
+        try {
+            Statement stmt = teamsConn.createStatement();
+            stmt.execute(sql);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return errorString;
     }
 
     public void DeleteMatch(Match match) {
@@ -118,8 +192,7 @@ public class TeamsDB {
                 id integer NOT NULL PRIMARY KEY,\s
                 name text NOT NULL UNIQUE,\s
                 captainid text NOT NULL,\s
-                memberids text NOT NULL,\s
-                matchtime text\s
+                memberids text NOT NULL\s
                 );""";
     }
 
@@ -130,7 +203,9 @@ public class TeamsDB {
                 teamoneid integer NOT NULL, \s
                 teamtwoid integer NOT NULL, \s
                 games integer, \s
-                matchtime text \s 
+                matchtime date, \s 
+                completed boolean DEFAULT false, \s
+                results text \s
                 );
                 """;
     }

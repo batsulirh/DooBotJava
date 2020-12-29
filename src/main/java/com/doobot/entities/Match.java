@@ -61,4 +61,20 @@ public class Match {
     public void setMatchTime(Date matchTime) {
         this.matchTime = matchTime;
     }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    public String getResults() {
+        return results;
+    }
+
+    public void setResults(String results) {
+        this.results = results;
+    }
 }
