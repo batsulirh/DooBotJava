@@ -78,6 +78,8 @@ public class TeamListener extends ListenerAdapter {
                 VoiceChannel team1Voice = category.createVoiceChannel(team1.getName()).submit().get();
                 VoiceChannel team2Voice = category.createVoiceChannel(team2.getName()).submit().get();
 
+                category.createPermissionOverride(guild.getPublicRole()).setDeny(Permission.ALL_PERMISSIONS).queue();
+
                 for(Member member: bothTeams.getMembers()){
                     textChannel.createPermissionOverride(member).setAllow(Permission.VIEW_CHANNEL).setAllow(Permission.MESSAGE_HISTORY).setAllow(Permission.MESSAGE_WRITE).queue();
                 }
