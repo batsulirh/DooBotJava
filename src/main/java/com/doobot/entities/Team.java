@@ -15,9 +15,7 @@ public class Team {
     private List<Member> members;
 
     public Team(){
-        name = "";
-        captain = null;
-        members = new ArrayList<Member>();
+        this("", null, new ArrayList<Member>());
     }
 
     public Team(String name, Member captain, List<Member> members){
