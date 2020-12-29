@@ -113,7 +113,7 @@ public class TeamsDB {
     public String AddMatch(Match match){
         String matchTime = match.getMatchTime() == null ? "" : match.getMatchTime().toString();
         String sql = String.format("""
-                INSERT INTO matches (teamoneid, teamtwoid, games, matchtime, completed, results) VALUES
+                INSERT INTO matches (teamoneid, teamtwoid, games, matchtime, categoryid, completed, results) VALUES
                 ('%s', '%s', %x, datetime('%s'), '%s', '%s');
                 """,
                 match.getTeamOne().getId(), match.getTeamTwo().getId(),
@@ -143,7 +143,7 @@ public class TeamsDB {
             results = stmt.executeQuery();
             Match match = null;
             if(results.next()){
-                match = new Match(teamone, teamtwo, results.getInt("games"));
+                match = new Match(teamone, teamtwo, results.getInt("games"), results.getString("categoryid"));
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
                 match.setResults(results.getString("results"));
@@ -163,6 +163,7 @@ public class TeamsDB {
                     teamtwoid = '%s',\s
                     games = %x,\s
                     matchtime = datetime('%s'),\s
+                    categoryid = '%s', \s 
                     completed = '%s', \s
                     results = '%s' \s
                 WHERE id = %x;
@@ -170,6 +171,7 @@ public class TeamsDB {
                      match.getTeamTwo().getId(),
                      match.getGames(),
                      match.getMatchTime(),
+                     match.getCategoryID(),
                      match.isCompleted(),
                      match.getResults(),
                      match.getId());
@@ -203,7 +205,8 @@ public class TeamsDB {
                 teamoneid integer NOT NULL, \s
                 teamtwoid integer NOT NULL, \s
                 games integer, \s
-                matchtime date, \s 
+                matchtime date, \s
+                categoryid text, \s 
                 completed boolean DEFAULT false, \s
                 results text \s
                 );

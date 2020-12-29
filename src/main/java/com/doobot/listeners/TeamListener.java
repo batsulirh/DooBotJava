@@ -4,13 +4,10 @@ import com.doobot.database.TeamsDB;
 import com.doobot.entities.Match;
 import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -68,29 +65,22 @@ public class TeamListener extends ListenerAdapter {
             Team bothTeams = new Team();
             bothTeams.addMembers(team1.getMembers());
             bothTeams.addMembers(team2.getMembers());
-            String result = teamsDB.AddMatch(new Match(team1, team2, Integer.parseInt(requestedTeams[3])));
-
-            if (!result.equals("")) {
-                msgChannel.sendMessage("Issue creating a new match: " + result).queue();
-                return;
-            }
-            Match createdMatch = teamsDB.GetMatch(team1, team2);
-            msgChannel.sendMessage(String.format("Match %x: %s vs %s with best of %x game(s) successfully created!",
-                    createdMatch.getId(),
-                    createdMatch.getTeamOne().getName(), createdMatch.getTeamTwo().getName(),
-                    createdMatch.getGames())).queue();
 
             try {
+                //Channel and category creation
                 Category category = guild.createCategory(team1.getName() + " vs " + team2.getName()).submit().get();
                 TextChannel textChannel = category.createTextChannel("match-schedule").submit().get();
                 VoiceChannel team1Voice = category.createVoiceChannel(team1.getName()).submit().get();
                 VoiceChannel team2Voice = category.createVoiceChannel(team2.getName()).submit().get();
 
+                //Permissions editing for category and created channels
                 category.createPermissionOverride(guild.getPublicRole()).setDeny(Permission.ALL_PERMISSIONS).queue();
 
                 for(Member member: bothTeams.getMembers()){
                     textChannel.createPermissionOverride(member).setAllow(Permission.VIEW_CHANNEL).setAllow(Permission.MESSAGE_HISTORY).setAllow(Permission.MESSAGE_WRITE).queue();
                 }
+                textChannel.createPermissionOverride(team1.getCaptain()).setAllow(Permission.VIEW_CHANNEL).setAllow(Permission.MESSAGE_HISTORY).setAllow(Permission.MESSAGE_WRITE).queue();
+                textChannel.createPermissionOverride(team2.getCaptain()).setAllow(Permission.VIEW_CHANNEL).setAllow(Permission.MESSAGE_HISTORY).setAllow(Permission.MESSAGE_WRITE).queue();
 
                 team1Voice.createPermissionOverride(team2.getCaptain()).setDeny(Permission.VOICE_CONNECT).queue();
                 team2Voice.createPermissionOverride(team1.getCaptain()).setDeny(Permission.VOICE_CONNECT).queue();
@@ -104,6 +94,20 @@ public class TeamListener extends ListenerAdapter {
                     team2Voice.createPermissionOverride(member).setAllow(Permission.VOICE_CONNECT).queue();
                     team1Voice.createPermissionOverride(member).setDeny(Permission.VOICE_CONNECT).queue();
                 }
+
+                //Match DB storage and creation
+                String result = teamsDB.AddMatch(new Match(team1, team2, Integer.parseInt(requestedTeams[3]), category.getId()));
+
+                if (!result.equals("")) {
+                    msgChannel.sendMessage("Issue creating a new match: " + result).queue();
+                    return;
+                }
+
+                Match createdMatch = teamsDB.GetMatch(team1, team2);
+                textChannel.sendMessage(String.format("Match %x: %s vs %s with best of %x game(s) successfully created!",
+                        createdMatch.getId(),
+                        createdMatch.getTeamOne().getName(), createdMatch.getTeamTwo().getName(),
+                        createdMatch.getGames())).queue();
 
             } catch (InterruptedException e) {
                 msgChannel.sendMessage("Oops! There was an error on our end, please try again").queue();

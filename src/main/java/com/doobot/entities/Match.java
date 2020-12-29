@@ -10,15 +10,20 @@ public class Match {
     private Date matchTime;
     private boolean completed;
     private String results;
+    private String categoryID;
 
     public Match(){
-        this(null, null, 0);
+                teamOne = null;
+                teamTwo = null;
+                games = 0;
+                categoryID = "";
     }
 
-    public Match(Team teamOne, Team teamTwo, int games){
+    public Match(Team teamOne, Team teamTwo, int games, String categoryID){
         this.teamOne = teamOne;
         this.teamTwo = teamTwo;
         this.games = games;
+        this.categoryID = categoryID;
         completed = false;
     }
 
@@ -76,5 +81,13 @@ public class Match {
 
     public void setResults(String results) {
         this.results = results;
+    }
+
+    public String getCategoryID() {
+        return categoryID;
+    }
+
+    public void setCategoryID(String categoryID) {
+        this.categoryID = categoryID;
     }
 }
