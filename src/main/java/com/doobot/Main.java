@@ -5,13 +5,16 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 
 public class Main extends ListenerAdapter {
     public static void main(String[] args) {
@@ -19,9 +22,12 @@ public class Main extends ListenerAdapter {
         try {
             Path paths = Paths.get("./src/main/resources/token.txt").toRealPath();
             botToken = new String(Files.readAllBytes(paths));
-            JDA jda = JDABuilder.createDefault(botToken)
+
+            JDA jda = JDABuilder.createDefault(botToken, EnumSet.allOf(GatewayIntent.class))
                     .setActivity(Activity.playing("The Management Game"))
-                    .addEventListeners(new TeamListener()).build();
+                    .setMemberCachePolicy(MemberCachePolicy.ALL)
+                    .addEventListeners(new TeamListener())
+                    .build();
             jda.awaitReady();
         } catch (LoginException e) {
             e.printStackTrace();

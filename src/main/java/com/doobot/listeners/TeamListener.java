@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -57,42 +59,56 @@ public class TeamListener extends ListenerAdapter {
             }
 
 
-        } else if (msg.getContentDisplay().startsWith("!setMatch")) {
-            String[] requestedTeams = msg.getContentRaw().split(" ");
-            Team team1 = teamsDB.GetTeam(requestedTeams[1], event.getGuild());
-            Team team2 = teamsDB.GetTeam(requestedTeams[2], event.getGuild());
-
-            Team bothTeams = new Team();
-            bothTeams.addMembers(team1.getMembers());
-            bothTeams.addMembers(team2.getMembers());
+        } else if (msg.getContentDisplay().startsWith("!set jnklmMatch")) {
 
             try {
+                String[] requestedTeams = msg.getContentRaw().split(" ");
+                Team team1 = teamsDB.GetTeam(requestedTeams[1], event.getGuild());
+                Team team2 = teamsDB.GetTeam(requestedTeams[2], event.getGuild());
+
+                Team bothTeams = new Team();
+                bothTeams.addMembers(team1.getMembers());
+                bothTeams.addMembers(team2.getMembers());
+
                 //Channel and category creation
                 Category category = guild.createCategory(team1.getName() + " vs " + team2.getName()).submit().get();
                 TextChannel textChannel = category.createTextChannel("match-schedule").submit().get();
                 VoiceChannel team1Voice = category.createVoiceChannel(team1.getName()).submit().get();
                 VoiceChannel team2Voice = category.createVoiceChannel(team2.getName()).submit().get();
 
+                //Constants for Permissions
+                List<Permission> textChannelPerms = new ArrayList<Permission>(Arrays.asList(Permission.MESSAGE_WRITE, Permission.MESSAGE_HISTORY, Permission.VIEW_CHANNEL, Permission.MESSAGE_ADD_REACTION));
+                List<Permission> voiceChannelPerms = new ArrayList<>(Arrays.asList(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL, Permission.VOICE_SPEAK, Permission.VOICE_STREAM, Permission.VOICE_USE_VAD));
+                List<Permission> voiceChannelPermsOtherTeam = new ArrayList<>(Arrays.asList(Permission.VIEW_CHANNEL));
+                List<Permission> voiceChannelPermsOtherTeamDeny = new ArrayList<>(Arrays.asList(Permission.VOICE_CONNECT));
+
                 //Permissions editing for category and created channels
                 category.createPermissionOverride(guild.getPublicRole()).setDeny(Permission.ALL_PERMISSIONS).queue();
 
-                for(Member member: bothTeams.getMembers()){
-                    textChannel.createPermissionOverride(member).setAllow(Permission.VIEW_CHANNEL).setAllow(Permission.MESSAGE_HISTORY).setAllow(Permission.MESSAGE_WRITE).queue();
-                }
-                textChannel.createPermissionOverride(team1.getCaptain()).setAllow(Permission.VIEW_CHANNEL).setAllow(Permission.MESSAGE_HISTORY).setAllow(Permission.MESSAGE_WRITE).queue();
-                textChannel.createPermissionOverride(team2.getCaptain()).setAllow(Permission.VIEW_CHANNEL).setAllow(Permission.MESSAGE_HISTORY).setAllow(Permission.MESSAGE_WRITE).queue();
+                category.createPermissionOverride(team1.getCaptain()).setPermissions(textChannelPerms, null).queue();
+                category.createPermissionOverride(team2.getCaptain()).setPermissions(textChannelPerms, null).queue();
 
-                team1Voice.createPermissionOverride(team2.getCaptain()).setDeny(Permission.VOICE_CONNECT).queue();
-                team2Voice.createPermissionOverride(team1.getCaptain()).setDeny(Permission.VOICE_CONNECT).queue();
+                for(Member member: bothTeams.getMembers()){
+                    textChannel.createPermissionOverride(member).setPermissions(textChannelPerms, null).queue();
+                }
+
+                textChannel.createPermissionOverride(team1.getCaptain()).setPermissions(textChannelPerms, null).queue();
+                textChannel.createPermissionOverride(team2.getCaptain()).setPermissions(textChannelPerms, null).queue();
+
+                team1Voice.createPermissionOverride(team2.getCaptain()).setPermissions(voiceChannelPermsOtherTeam, voiceChannelPermsOtherTeamDeny).queue();
+                team2Voice.createPermissionOverride(team2.getCaptain()).setPermissions(voiceChannelPerms, null).queue();
+
+                team1Voice.createPermissionOverride(team1.getCaptain()).setPermissions(voiceChannelPerms,  null).queue();
+                team2Voice.createPermissionOverride(team1.getCaptain()).setPermissions(voiceChannelPermsOtherTeam, voiceChannelPermsOtherTeamDeny).queue();
 
                 for (Member member : team1.getMembers()) {
-                    team1Voice.createPermissionOverride(member).setAllow(Permission.VOICE_CONNECT).queue();
-                    team2Voice.createPermissionOverride(member).setDeny(Permission.VOICE_CONNECT).queue();
+                    team1Voice.createPermissionOverride(member).setPermissions(voiceChannelPerms, null).queue();
+                    team2Voice.createPermissionOverride(member).setPermissions(voiceChannelPermsOtherTeam, voiceChannelPermsOtherTeamDeny).queue();
                 }
 
                 for (Member member : team2.getMembers()) {
-                    team2Voice.createPermissionOverride(member).setAllow(Permission.VOICE_CONNECT).queue();
-                    team1Voice.createPermissionOverride(member).setDeny(Permission.VOICE_CONNECT).queue();
+                    team2Voice.createPermissionOverride(member).setPermissions(voiceChannelPerms, null).queue();
+                    team1Voice.createPermissionOverride(member).setPermissions(voiceChannelPermsOtherTeam,voiceChannelPermsOtherTeamDeny).queue();
                 }
 
                 //Match DB storage and creation
@@ -114,6 +130,7 @@ public class TeamListener extends ListenerAdapter {
                 e.printStackTrace();
             } catch (ExecutionException e) {
                 e.printStackTrace();
+                msgChannel.sendMessage("Oops! There was an error on our end, please try again").queue();
             }
 
 
@@ -134,6 +151,7 @@ public class TeamListener extends ListenerAdapter {
         } else if (msg.getContentDisplay().startsWith("!report")) {
 
         } else if (msg.getContentDisplay().equals("!confirm")) {
+
 
         } else if (msg.getContentDisplay().equals("!challenge")) {
             //Needs Admin channel ID for implementation

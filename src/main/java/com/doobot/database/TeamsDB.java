@@ -136,7 +136,7 @@ public class TeamsDB {
                 OR 
                     (teamoneid = %x AND teamtwoid = %x);
                 """, teamone.getId(), teamtwo.getId(),
-                     teamtwo.getId(), teamone.getId());
+                teamtwo.getId(), teamone.getId());
 
         try{
             PreparedStatement stmt = teamsConn.prepareStatement(sql);
@@ -168,13 +168,13 @@ public class TeamsDB {
                     results = '%s' \s
                 WHERE id = %x;
                 """, match.getTeamOne().getId(),
-                     match.getTeamTwo().getId(),
-                     match.getGames(),
-                     match.getMatchTime(),
-                     match.getCategoryID(),
-                     match.isCompleted(),
-                     match.getResults(),
-                     match.getId());
+                match.getTeamTwo().getId(),
+                match.getGames(),
+                match.getMatchTime(),
+                match.getCategoryID(),
+                match.isCompleted(),
+                match.getResults(),
+                match.getId());
         try {
             Statement stmt = teamsConn.createStatement();
             stmt.execute(sql);
