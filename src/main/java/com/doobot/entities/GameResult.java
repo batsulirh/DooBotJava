@@ -7,13 +7,13 @@ public class GameResult {
     private String replay;
 
     public GameResult(){
-        this(0, null);
+        this(0, null, "");
     }
 
-    public GameResult(int matchId, Team winningTeam){
+    public GameResult(int matchId, Team winningTeam, String replay){
         this.matchId = matchId;
         this.winningTeam = winningTeam;
-        this.replay = "";
+        this.replay = replay;
     }
 
     public int getId() {

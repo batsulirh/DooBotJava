@@ -1,5 +1,6 @@
 package com.doobot.database;
 
+import com.doobot.entities.GameResult;
 import com.doobot.entities.Match;
 import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
@@ -145,7 +146,8 @@ public class TeamsDB {
                 ('%s', '%s', %x, datetime('%s'), '%s', '%s', '%s');
                 """,
                 match.getTeamOne().getId(), match.getTeamTwo().getId(), match.getGames(),
-                matchTime, match.getCategoryID(), match.isCompleted(), match.getGameResults());
+                matchTime, match.getCategoryID(), match.isCompleted(),
+                TeamService.parseGameResultsToString(match.getGameResults()));
         try {
             Statement stmt = teamsConn.createStatement();
             stmt.execute(sql);
@@ -174,7 +176,7 @@ public class TeamsDB {
                 match = new Match(teamone, teamtwo, results.getInt("games"), results.getString("categoryid"));
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
-                match.setGameResults(results.getString("results"));
+                // match.setGameResults(results.getString("results"));
             }
             return match;
         } catch (SQLException throwables) {
@@ -200,7 +202,10 @@ public class TeamsDB {
                 match = new Match(team1, team2, results.getInt("games"), results.getString("categoryid"));
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
-                match.setGameResults(results.getString("results"));
+
+                TeamService.parseGameResultsToList(results.getString("results"));
+
+                // match.setGameResults();
             }
             return match;
         } catch (SQLException throwables) {
@@ -227,7 +232,7 @@ public class TeamsDB {
                 match.getMatchTime(),
                 match.getCategoryID(),
                 match.isCompleted(),
-                match.getGameResults(),
+                TeamService.parseGameResultsToString(match.getGameResults()),
                 match.getId());
         try {
             Statement stmt = teamsConn.createStatement();
@@ -240,6 +245,10 @@ public class TeamsDB {
 
     public void DeleteMatch(Match match) {
 
+    }
+
+    public GameResult GetGameResultById(int id){
+        return null;
     }
 
     private String CreateTeamsTable(){
@@ -267,7 +276,7 @@ public class TeamsDB {
                 """;
     }
 
-    private String CreateMatchResultsTable(){
+    private String CreateGameResultsTable(){
         return null;
     }
 }
