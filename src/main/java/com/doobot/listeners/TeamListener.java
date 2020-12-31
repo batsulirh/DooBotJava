@@ -149,6 +149,14 @@ public class TeamListener extends ListenerAdapter {
                     "GLHF!").queue();
 
         } else if (msg.getContentDisplay().startsWith("!report")) {
+            String[] splitString = msg.getContentRaw().split(" ");
+            if(msg.getAttachments() == null){
+                    msgChannel.sendMessage("Sorry! Reported games must include a replay attachment.").queue();
+            }else if(msg.getAttachments().get(0).getFileExtension().equals("replay")){
+                //Match currentMatch = teamsDB,getMatchByCategoryID();
+                //MatchResult.addWinningTeam(splitString[1]);
+                //
+            }
 
         } else if (msg.getContentDisplay().equals("!confirm")) {
 
