@@ -1,6 +1,7 @@
 package com.doobot.entities;
 
 import java.util.Date;
+import java.util.List;
 
 public class Match {
     private int id;
@@ -9,8 +10,8 @@ public class Match {
     private int games;
     private Date matchTime;
     private boolean completed;
-    private String results;
     private String categoryID;
+    private List<GameResult> gameResults;
 
     public Match(){
                 teamOne = null;
@@ -75,12 +76,16 @@ public class Match {
         this.completed = completed;
     }
 
-    public String getResults() {
-        return results;
+    public List<GameResult> getGameResults() {
+        return gameResults;
     }
 
-    public void setResults(String results) {
-        this.results = results;
+    public void addGameResult(GameResult result) {
+        this.gameResults.add(result);
+    }
+
+    public void setGameResults(List<GameResult> gameResults) {
+        this.gameResults = gameResults;
     }
 
     public String getCategoryID() {

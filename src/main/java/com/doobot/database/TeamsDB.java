@@ -59,7 +59,7 @@ public class TeamsDB {
         return errorString;
     }
 
-    public Team GetTeam(String teamName, Guild guild) {
+    public Team GetTeamByName(String teamName, Guild guild) {
         ResultSet results;
         Team team = null;
         String sql = String.format("""
@@ -67,6 +67,34 @@ public class TeamsDB {
                 from teams
                 where name = '%s';
                 """, teamName);
+        try {
+            PreparedStatement stmt = teamsConn.prepareStatement(sql);
+            results = stmt.executeQuery();
+            if(results.next()) {
+                Member captain = guild.getMemberById(results.getString("captainid"));
+                List<String> memberStrings = TeamService.parseMembersToList(results.getString("memberids"));
+                List<Member> memberList = new ArrayList<>();
+                memberStrings.forEach(m -> memberList.add(guild.getMemberById(m)));
+                team = new Team(results.getString("name"), captain, memberList);
+                team.setId(results.getInt("id"));
+
+                return team;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return team;
+    }
+
+    public Team GetTeamById(String teamId, Guild guild){
+        ResultSet results;
+        Team team = null;
+        String sql = String.format("""
+                SELECT id, name, captainid, memberids
+                from teams
+                where id = '%s';
+                """, teamId);
         try {
             PreparedStatement stmt = teamsConn.prepareStatement(sql);
             results = stmt.executeQuery();
@@ -117,7 +145,7 @@ public class TeamsDB {
                 ('%s', '%s', %x, datetime('%s'), '%s', '%s', '%s');
                 """,
                 match.getTeamOne().getId(), match.getTeamTwo().getId(), match.getGames(),
-                matchTime, match.getCategoryID(), match.isCompleted(), match.getResults());
+                matchTime, match.getCategoryID(), match.isCompleted(), match.getGameResults());
         try {
             Statement stmt = teamsConn.createStatement();
             stmt.execute(sql);
@@ -127,7 +155,7 @@ public class TeamsDB {
         return "";
     }
 
-    public Match GetMatch(Team teamone, Team teamtwo) {
+    public Match GetMatchByTeams(Team teamone, Team teamtwo) {
         ResultSet results;
         String sql = String.format("""
                 SELECT * FROM matches \s
@@ -146,7 +174,33 @@ public class TeamsDB {
                 match = new Match(teamone, teamtwo, results.getInt("games"), results.getString("categoryid"));
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
-                match.setResults(results.getString("results"));
+                match.setGameResults(results.getString("results"));
+            }
+            return match;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return null;
+    }
+
+    public Match GetMatchByCategoryId(String categoryId, Guild guild) {
+        ResultSet results;
+        String sql = String.format("""
+                SELECT * FROM matches \s
+                WHERE categoryid = %s
+                """, categoryId);
+
+        try{
+            PreparedStatement stmt = teamsConn.prepareStatement(sql);
+            results = stmt.executeQuery();
+            Match match = null;
+            if(results.next()){
+                Team team1 = GetTeamById(results.getString("teamoneid"), guild);
+                Team team2 = GetTeamById(results.getString("teamtwoid"), guild);
+                match = new Match(team1, team2, results.getInt("games"), results.getString("categoryid"));
+                match.setCompleted(results.getBoolean("completed"));
+                match.setMatchTime(results.getDate("matchtime"));
+                match.setGameResults(results.getString("results"));
             }
             return match;
         } catch (SQLException throwables) {
@@ -173,7 +227,7 @@ public class TeamsDB {
                 match.getMatchTime(),
                 match.getCategoryID(),
                 match.isCompleted(),
-                match.getResults(),
+                match.getGameResults(),
                 match.getId());
         try {
             Statement stmt = teamsConn.createStatement();
@@ -211,5 +265,9 @@ public class TeamsDB {
                 results text \s
                 );
                 """;
+    }
+
+    private String CreateMatchResultsTable(){
+        return null;
     }
 }
