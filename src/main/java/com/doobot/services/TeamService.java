@@ -73,9 +73,11 @@ public class TeamService {
     public static String parseGameResultsToString(List<GameResult> gameResults){
         StringBuilder resultString = new StringBuilder();
         for (GameResult result : gameResults) {
-            if(resultString.length() > 0)
-                resultString.append(",");
-            resultString.append(result.getId());
+            if(result != null) {
+                if(resultString.length() > 0)
+                    resultString.append(",");
+                resultString.append(result.getId());
+            }
         }
 
         return resultString.toString();

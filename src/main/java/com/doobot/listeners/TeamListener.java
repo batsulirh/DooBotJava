@@ -120,7 +120,7 @@ public class TeamListener extends ListenerAdapter {
                     return;
                 }
 
-                Match createdMatch = teamsDB.GetMatchByTeams(team1, team2);
+                Match createdMatch = teamsDB.GetMatchByTeams(team1, team2, guild);
                 textChannel.sendMessage(String.format("Match %x: %s vs %s with best of %x game(s) successfully created!",
                         createdMatch.getId(),
                         createdMatch.getTeamOne().getName(), createdMatch.getTeamTwo().getName(),
@@ -139,7 +139,6 @@ public class TeamListener extends ListenerAdapter {
             String[] requestedTime = msg.getContentRaw().split(" ");
             Date date = teamService.parseMatchTime(requestedTime[1]);
 
-            // Need to pass matchup to retrieve match
             // teamsDB.GetMatch()
             // teamsDB.EditMatch()
             msgChannel.sendMessage("Your match time is now set to: " + date.toString() +
@@ -161,17 +160,24 @@ public class TeamListener extends ListenerAdapter {
                 Team winningTeam = teamsDB.GetTeamByName(splitString[1], guild);
 
                 if (teamsInMatch.get(0).getId() == winningTeam.getId() || teamsInMatch.get(1).getId() == winningTeam.getId()){
-                    String attachmentString = teamService.printContents(msg.getAttachments().get(0));
-                    GameResult gameResult = new GameResult(currentMatch.getId(), winningTeam, attachmentString);
-                    currentMatch.addGameResult(gameResult);
+                    Message.Attachment passedAttachment = msg.getAttachments().get(0);
+                    String attachmentString = teamService.printContents(passedAttachment);
+                    GameResult gameResult = new GameResult(currentMatch.getId(), winningTeam,
+                            attachmentString, passedAttachment.getFileExtension(), passedAttachment.getFileName());
+
+                    teamsDB.AddGameResult(gameResult);
+                    List<GameResult> gameResultsList= teamsDB.GetGameResultsByMatchId(currentMatch.getId(), guild);
+                    currentMatch.setGameResults(gameResultsList);
+                    teamsDB.EditMatch(currentMatch);
+
 
                     int threshold =  (currentMatch.getGames()/2) + 1;
                     int teamOneWins = 0;
                     int teamTwoWins = 0;
                     for(GameResult result : currentMatch.getGameResults()){
-                        if(result.getWinningTeam().equals(currentMatch.getTeamOne())){
+                        if(result.getWinningTeam().getId() == currentMatch.getTeamOne().getId()){
                             teamOneWins++;
-                        }else if(result.getWinningTeam().equals(currentMatch.getTeamTwo())){
+                        }else if(result.getWinningTeam().getId() == currentMatch.getTeamTwo().getId()){
                             teamTwoWins++;
                         }
                     }
