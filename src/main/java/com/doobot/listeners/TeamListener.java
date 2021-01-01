@@ -120,7 +120,7 @@ public class TeamListener extends ListenerAdapter {
                     return;
                 }
 
-                Match createdMatch = teamsDB.GetMatchByTeams(team1, team2);
+                Match createdMatch = teamsDB.GetMatchByTeams(team1, team2, guild);
                 textChannel.sendMessage(String.format("Match %x: %s vs %s with best of %x game(s) successfully created!",
                         createdMatch.getId(),
                         createdMatch.getTeamOne().getName(), createdMatch.getTeamTwo().getName(),
@@ -161,8 +161,10 @@ public class TeamListener extends ListenerAdapter {
                 Team winningTeam = teamsDB.GetTeamByName(splitString[1], guild);
 
                 if (teamsInMatch.get(0).getId() == winningTeam.getId() || teamsInMatch.get(1).getId() == winningTeam.getId()){
-                    String attachmentString = teamService.printContents(msg.getAttachments().get(0));
-                    GameResult gameResult = new GameResult(currentMatch.getId(), winningTeam, attachmentString);
+                    Message.Attachment passedAttachment = msg.getAttachments().get(0);
+                    String attachmentString = teamService.printContents(passedAttachment);
+                    GameResult gameResult = new GameResult(currentMatch.getId(), winningTeam,
+                            attachmentString, passedAttachment.getFileExtension(), passedAttachment.getFileName());
                     currentMatch.addGameResult(gameResult);
 
                     int threshold =  (currentMatch.getGames()/2) + 1;

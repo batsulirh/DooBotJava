@@ -34,6 +34,7 @@ public class TeamsDB {
             Statement stmt = teamsConn.createStatement();
             stmt.execute(CreateTeamsTable());
             stmt.execute(CreateMatchesTable());
+            stmt.execute(CreateGameResultsTable());
             System.out.println("DB retrieved successfully");
         } catch (IOException | SQLException e) {
             e.printStackTrace();
@@ -157,7 +158,7 @@ public class TeamsDB {
         return "";
     }
 
-    public Match GetMatchByTeams(Team teamone, Team teamtwo) {
+    public Match GetMatchByTeams(Team teamone, Team teamtwo, Guild guild) {
         ResultSet results;
         String sql = String.format("""
                 SELECT * FROM matches \s
@@ -176,7 +177,14 @@ public class TeamsDB {
                 match = new Match(teamone, teamtwo, results.getInt("games"), results.getString("categoryid"));
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
-                // match.setGameResults(results.getString("results"));
+
+                List<Integer> gameResultIds = TeamService.parseGameResultsToList(results.getString("results"));
+                List<GameResult> gameResults = new ArrayList<>();
+                for (int gameResultId:gameResultIds) {
+                    gameResults.add(GetGameResultById(gameResultId, guild));
+                }
+
+                match.setGameResults(gameResults);
             }
             return match;
         } catch (SQLException throwables) {
@@ -203,9 +211,13 @@ public class TeamsDB {
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
 
-                TeamService.parseGameResultsToList(results.getString("results"));
+                List<Integer> gameResultIds = TeamService.parseGameResultsToList(results.getString("results"));
+                List<GameResult> gameResults = new ArrayList<>();
+                for (int gameResultId:gameResultIds) {
+                    gameResults.add(GetGameResultById(gameResultId, guild));
+                }
 
-                // match.setGameResults();
+                match.setGameResults(gameResults);
             }
             return match;
         } catch (SQLException throwables) {
@@ -247,8 +259,47 @@ public class TeamsDB {
 
     }
 
-    public GameResult GetGameResultById(int id){
-        return null;
+    public String AddGameResult(GameResult gameResult){
+        String errorString = "";
+        try {
+            String sql = String.format("""
+                    INSERT INTO gameResults (matchid, winningteamid, replayStream, replayFileExtension, replayFileName)\s
+                    values(%x,'%s','%s','%s','%s');
+                    """, gameResult.getMatchId(), gameResult.getWinningTeam().getId(),
+                    gameResult.getReplayStream(), gameResult.getReplayFileExtension(), gameResult.getReplayFileName());
+
+            Statement stmt = teamsConn.createStatement();
+            stmt.execute(sql);
+        } catch (SQLException ex){
+            ex.printStackTrace();
+        }
+        return errorString;
+    }
+
+    public GameResult GetGameResultById(int resultId, Guild guild){
+        ResultSet results;
+        GameResult gameResult = null;
+        String sql = String.format("""
+                SELECT *
+                from gameResults
+                where id = '%x';
+                """, resultId);
+        try {
+            PreparedStatement stmt = teamsConn.prepareStatement(sql);
+            results = stmt.executeQuery();
+            if(results.next()) {
+                Team winningTeam = GetTeamById(results.getString("winningteamid"), guild);
+                gameResult = new GameResult(results.getInt("matchid"), winningTeam,
+                        results.getString("replayStream"),
+                        results.getString("replayFileExtension"),
+                        results.getString("replayFileName"));
+
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return gameResult;
     }
 
     private String CreateTeamsTable(){
@@ -277,6 +328,15 @@ public class TeamsDB {
     }
 
     private String CreateGameResultsTable(){
-        return null;
+        return """
+                CREATE TABLE IF NOT EXISTS gameResults (
+                id integer NOT NULL PRIMARY KEY, \s
+                matchid integer NOT NULL, \s
+                winningteamid integer NOT NULL, \s
+                replayStream blob, \s
+                replayFileExtension text, \s
+                replayFileName text \s
+                );
+                """;
     }
 }

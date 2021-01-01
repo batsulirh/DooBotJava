@@ -4,16 +4,20 @@ public class GameResult {
     private int id;
     private int matchId;
     private Team winningTeam;
-    private String replay;
+    private String replayStream;
+    private String replayFileExtension;
+    private String replayFileName;
 
     public GameResult(){
-        this(0, null, "");
+        this(0, null, "", "", "");
     }
 
-    public GameResult(int matchId, Team winningTeam, String replay){
+    public GameResult(int matchId, Team winningTeam, String replayStream, String replayFileExtension, String replayFileName){
         this.matchId = matchId;
         this.winningTeam = winningTeam;
-        this.replay = replay;
+        this.replayStream = replayStream;
+        this.replayFileExtension = replayFileExtension;
+        this.replayFileName = replayFileName;
     }
 
     public int getId() {
@@ -40,11 +44,27 @@ public class GameResult {
         this.winningTeam = winningTeam;
     }
 
-    public String getReplay() {
-        return replay;
+    public String getReplayStream() {
+        return replayStream;
     }
 
-    public void setReplay(String replay) {
-        this.replay = replay;
+    public void setReplayStream(String replayStream) {
+        this.replayStream = replayStream;
+    }
+
+    public String getReplayFileExtension() {
+        return replayFileExtension;
+    }
+
+    public void setReplayFileExtension(String replayFileExtension) {
+        this.replayFileExtension = replayFileExtension;
+    }
+
+    public String getReplayFileName() {
+        return replayFileName;
+    }
+
+    public void setReplayFileName(String replayFileName) {
+        this.replayFileName = replayFileName;
     }
 }
