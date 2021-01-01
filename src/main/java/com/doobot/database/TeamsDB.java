@@ -90,6 +90,11 @@ public class TeamsDB {
     }
 
     public Team GetTeamById(String teamId, Guild guild){
+
+        if(teamId == null || teamId.isEmpty()){
+            return null;
+        }
+
         ResultSet results;
         Team team = null;
         String sql = String.format("""
@@ -175,8 +180,12 @@ public class TeamsDB {
             Match match = null;
             if(results.next()){
                 match = new Match(teamone, teamtwo, results.getInt("games"), results.getString("categoryid"));
+                Team winningTeam = GetTeamById(results.getString("matchWinnerId"), guild);
+
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
+                match.setMatchWinner(winningTeam);
+                match.setId(results.getInt("id"));
 
                 List<Integer> gameResultIds = TeamService.parseGameResultsToList(results.getString("results"));
                 List<GameResult> gameResults = new ArrayList<>();
@@ -207,10 +216,13 @@ public class TeamsDB {
             if(results.next()){
                 Team team1 = GetTeamById(results.getString("teamoneid"), guild);
                 Team team2 = GetTeamById(results.getString("teamtwoid"), guild);
+                Team winningTeam = GetTeamById(results.getString("matchWinnerId"), guild);
+
                 match = new Match(team1, team2, results.getInt("games"), results.getString("categoryid"));
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
                 match.setId(results.getInt("id"));
+                match.setMatchWinner(winningTeam);
 
                 List<Integer> gameResultIds = TeamService.parseGameResultsToList(results.getString("results"));
                 List<GameResult> gameResults = new ArrayList<>();
@@ -237,7 +249,8 @@ public class TeamsDB {
                     matchtime = datetime('%s'),\s
                     categoryid = '%s', \s 
                     completed = '%s', \s
-                    results = '%s' \s
+                    results = '%s', \s
+                    matchWinnerId = '%s' \s
                 WHERE id = %x;
                 """, match.getTeamOne().getId(),
                 match.getTeamTwo().getId(),
@@ -246,6 +259,7 @@ public class TeamsDB {
                 match.getCategoryID(),
                 match.isCompleted(),
                 TeamService.parseGameResultsToString(match.getGameResults()),
+                match.getMatchWinner() == null ? null:match.getMatchWinner().getId(),
                 match.getId());
         try {
             Statement stmt = teamsConn.createStatement();
@@ -351,7 +365,8 @@ public class TeamsDB {
                 matchtime date, \s
                 categoryid text, \s 
                 completed boolean DEFAULT false, \s
-                results text \s
+                results text, \s
+                matchWinnerId integer \s
                 );
                 """;
     }

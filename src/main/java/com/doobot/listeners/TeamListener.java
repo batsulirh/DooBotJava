@@ -4,6 +4,7 @@ import com.doobot.database.TeamsDB;
 import com.doobot.entities.GameResult;
 import com.doobot.entities.Match;
 import com.doobot.entities.Team;
+import com.doobot.services.DeleteChannelsService;
 import com.doobot.services.TeamService;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -168,7 +169,6 @@ public class TeamListener extends ListenerAdapter {
                     teamsDB.AddGameResult(gameResult);
                     List<GameResult> gameResultsList= teamsDB.GetGameResultsByMatchId(currentMatch.getId(), guild);
                     currentMatch.setGameResults(gameResultsList);
-                    teamsDB.EditMatch(currentMatch);
 
 
                     int threshold =  (currentMatch.getGames()/2) + 1;
@@ -192,6 +192,7 @@ public class TeamListener extends ListenerAdapter {
                     }else{
                         msg.addReaction("U+1F44C").queue();
                     }
+                    teamsDB.EditMatch(currentMatch);
                 }else{
                     msgChannel.sendMessage("Sorry, I don't think that team is playing in this match! ").queue();
                     return;
@@ -204,19 +205,29 @@ public class TeamListener extends ListenerAdapter {
             Team losingTeam = null;
 
             for(Team team : teamsInMatch){
-                if(team != winningTeam){
+                if(team.getId() != winningTeam.getId()){
                     losingTeam = team;
                 }
             }
 
             if(winningTeam != null){
-                if(losingTeam.getCaptain() == msg.getMember()){
+                if(losingTeam.getCaptain().getId().equals(msg.getMember().getId())){
                     currentMatch.setCompleted(true);
-                    msgChannel.sendMessage("Congratulations Team " + winningTeam.getName() + "!\n\n This channel will now be deleted in 5 minutes. Thank you for playing!");
+                    msgChannel.sendMessage("Congratulations Team " + winningTeam.getName() + "!\n\n This channel will now be deleted in 20 minutes. Thank you for playing!").queue();
+
+                    Date currentTime = new Date(System.currentTimeMillis() + 1200000);
+                    Category category = msg.getCategory();
+                    Timer timer =  new Timer(category.getId());
+                    timer.schedule(new DeleteChannelsService(category), currentTime);
+                }else{
+                    msgChannel.sendMessage("Sorry, the losing team captain has to call the '!confirm' command.").queue();
                 }
             }
 
+            teamsDB.EditMatch(currentMatch);
+
             //Make Timer for 10 minutes to delete category and channels
+
 
         } else if (msg.getContentDisplay().equals("!challenge")) {
             //Needs Admin channel ID for implementation
@@ -234,7 +245,6 @@ public class TeamListener extends ListenerAdapter {
         } else if (msg.getContentDisplay().equals("!reset")) {
 
         } else if (msg.getContentDisplay().equals("!listTeams")) {
-
 
         } else if (msg.getContentDisplay().equals("!listMatches")) {
 
