@@ -3,7 +3,9 @@ package com.doobot.services;
 import com.doobot.database.TeamsDB;
 import com.doobot.entities.GameResult;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -82,8 +84,32 @@ public class TeamService {
     public static List<Integer> parseGameResultsToList(String gameResultIds) {
         List<Integer> resultsList = new ArrayList<>();
         String[] splitMembers = gameResultIds.split(",");
-        Arrays.stream(splitMembers).forEach(x -> resultsList.add(Integer.parseInt(x)));
-
+        if(!gameResultIds.isEmpty()) {
+            Arrays.stream(splitMembers).forEach(x -> resultsList.add(Integer.parseInt(x)));
+        }
         return resultsList;
+    }
+
+    public String printContents(Message.Attachment attachment)
+    {
+        StringBuilder builder = new StringBuilder();
+        attachment.retrieveInputStream().thenAccept(in -> {
+            byte[] buf = new byte[1024];
+            int count = 0;
+            try {
+                while ((count = in.read(buf)) > 0) {
+                    builder.append(new String(buf, 0, count));
+                }
+                in.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).exceptionally(t -> { // handle failure
+            t.printStackTrace();
+            return null;
+        });
+
+        return builder.toString();
     }
 }

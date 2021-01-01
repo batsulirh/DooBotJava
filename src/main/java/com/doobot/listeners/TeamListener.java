@@ -1,6 +1,7 @@
 package com.doobot.listeners;
 
 import com.doobot.database.TeamsDB;
+import com.doobot.entities.GameResult;
 import com.doobot.entities.Match;
 import com.doobot.entities.Team;
 import com.doobot.services.TeamService;
@@ -59,12 +60,12 @@ public class TeamListener extends ListenerAdapter {
             }
 
 
-        } else if (msg.getContentDisplay().startsWith("!set jnklmMatch")) {
+        } else if (msg.getContentDisplay().startsWith("!setMatch")) {
 
             try {
                 String[] requestedTeams = msg.getContentRaw().split(" ");
-                Team team1 = teamsDB.GetTeam(requestedTeams[1], event.getGuild());
-                Team team2 = teamsDB.GetTeam(requestedTeams[2], event.getGuild());
+                Team team1 = teamsDB.GetTeamByName(requestedTeams[1], event.getGuild());
+                Team team2 = teamsDB.GetTeamByName(requestedTeams[2], event.getGuild());
 
                 Team bothTeams = new Team();
                 bothTeams.addMembers(team1.getMembers());
@@ -119,7 +120,7 @@ public class TeamListener extends ListenerAdapter {
                     return;
                 }
 
-                Match createdMatch = teamsDB.GetMatch(team1, team2);
+                Match createdMatch = teamsDB.GetMatchByTeams(team1, team2);
                 textChannel.sendMessage(String.format("Match %x: %s vs %s with best of %x game(s) successfully created!",
                         createdMatch.getId(),
                         createdMatch.getTeamOne().getName(), createdMatch.getTeamTwo().getName(),
@@ -149,7 +150,47 @@ public class TeamListener extends ListenerAdapter {
                     "GLHF!").queue();
 
         } else if (msg.getContentDisplay().startsWith("!report")) {
+            String[] splitString = msg.getContentRaw().split(" ");
 
+            if(msg.getAttachments().isEmpty()){
+                msgChannel.sendMessage("Sorry! Reported games must include a replay attachment.").queue();
+
+            }else if(msg.getAttachments().get(0).getFileExtension().equals("replay")){
+                Match currentMatch = teamsDB.GetMatchByCategoryId(msg.getCategory().getId(), guild);
+                List<Team> teamsInMatch = new ArrayList<>(Arrays.asList(currentMatch.getTeamOne(), currentMatch.getTeamTwo()));
+                Team winningTeam = teamsDB.GetTeamByName(splitString[1], guild);
+
+                if (teamsInMatch.get(0).getId() == winningTeam.getId() || teamsInMatch.get(1).getId() == winningTeam.getId()){
+                    String attachmentString = teamService.printContents(msg.getAttachments().get(0));
+                    GameResult gameResult = new GameResult(currentMatch.getId(), winningTeam, attachmentString);
+                    currentMatch.addGameResult(gameResult);
+
+                    int threshold =  (currentMatch.getGames()/2) + 1;
+                    int teamOneWins = 0;
+                    int teamTwoWins = 0;
+                    for(GameResult result : currentMatch.getGameResults()){
+                        if(result.getWinningTeam().equals(currentMatch.getTeamOne())){
+                            teamOneWins++;
+                        }else if(result.getWinningTeam().equals(currentMatch.getTeamTwo())){
+                            teamTwoWins++;
+                        }
+                    }
+                    if(teamOneWins >= threshold){
+                        currentMatch.setMatchWinner(currentMatch.getTeamOne());
+                        msgChannel.sendMessage("Team " + currentMatch.getMatchWinner().getName() + " has won the necessary amount of games to win the series! Waiting on the other team captain to confirm. ").queue();
+                    }else if(teamTwoWins >= threshold){
+                        currentMatch.setMatchWinner(currentMatch.getTeamTwo());
+                        msgChannel.sendMessage("Team " + currentMatch.getMatchWinner().getName() + " has won the necessary amount of games to win the series! Waiting on the other team captain to confirm. ").queue();
+                    }else if(currentMatch.getGameResults().size() >= currentMatch.getGames()){
+                        currentMatch.setMatchWinner(null);
+                    }else{
+                        msg.addReaction("U+1F44C").queue();
+                    }
+                }else{
+                    msgChannel.sendMessage("Sorry, I don't think that team is playing in this match! ").queue();
+                    return;
+                }
+            }
         } else if (msg.getContentDisplay().equals("!confirm")) {
 
 
@@ -169,6 +210,7 @@ public class TeamListener extends ListenerAdapter {
         } else if (msg.getContentDisplay().equals("!reset")) {
 
         } else if (msg.getContentDisplay().equals("!listTeams")) {
+
 
         } else if (msg.getContentDisplay().equals("!listMatches")) {
 

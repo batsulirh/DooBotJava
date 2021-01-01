@@ -1,5 +1,6 @@
 package com.doobot.entities;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -12,12 +13,10 @@ public class Match {
     private boolean completed;
     private String categoryID;
     private List<GameResult> gameResults;
+    private Team matchWinner;
 
     public Match(){
-                teamOne = null;
-                teamTwo = null;
-                games = 0;
-                categoryID = "";
+        this(null, null, 0, "");
     }
 
     public Match(Team teamOne, Team teamTwo, int games, String categoryID){
@@ -26,6 +25,7 @@ public class Match {
         this.games = games;
         this.categoryID = categoryID;
         completed = false;
+        gameResults = new ArrayList<>();
     }
 
     public int getId() {
@@ -94,5 +94,13 @@ public class Match {
 
     public void setCategoryID(String categoryID) {
         this.categoryID = categoryID;
+    }
+
+    public Team getMatchWinner() {
+        return matchWinner;
+    }
+
+    public void setMatchWinner(Team matchWinner) {
+        this.matchWinner = matchWinner;
     }
 }
