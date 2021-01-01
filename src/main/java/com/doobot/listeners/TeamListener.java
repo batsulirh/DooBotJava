@@ -192,7 +192,25 @@ public class TeamListener extends ListenerAdapter {
                 }
             }
         } else if (msg.getContentDisplay().equals("!confirm")) {
+            Match currentMatch = teamsDB.GetMatchByCategoryId(msg.getCategory().getId(), guild);
+            List<Team> teamsInMatch = new ArrayList<>(Arrays.asList(currentMatch.getTeamOne(), currentMatch.getTeamTwo()));
+            Team winningTeam = currentMatch.getMatchWinner();
+            Team losingTeam = null;
 
+            for(Team team : teamsInMatch){
+                if(team != winningTeam){
+                    losingTeam = team;
+                }
+            }
+
+            if(winningTeam != null){
+                if(losingTeam.getCaptain() == msg.getMember()){
+                    currentMatch.setCompleted(true);
+                    msgChannel.sendMessage("Congratulations Team " + winningTeam.getName() + "!\n\n This channel will now be deleted in 5 minutes. Thank you for playing!");
+                }
+            }
+
+            //Make Timer for 10 minutes to delete category and channels
 
         } else if (msg.getContentDisplay().equals("!challenge")) {
             //Needs Admin channel ID for implementation
