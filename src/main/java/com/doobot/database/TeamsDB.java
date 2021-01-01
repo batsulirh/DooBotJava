@@ -197,7 +197,7 @@ public class TeamsDB {
         ResultSet results;
         String sql = String.format("""
                 SELECT * FROM matches \s
-                WHERE categoryid = %s
+                WHERE categoryid = '%s'
                 """, categoryId);
 
         try{
@@ -210,6 +210,7 @@ public class TeamsDB {
                 match = new Match(team1, team2, results.getInt("games"), results.getString("categoryid"));
                 match.setCompleted(results.getBoolean("completed"));
                 match.setMatchTime(results.getDate("matchtime"));
+                match.setId(results.getInt("id"));
 
                 List<Integer> gameResultIds = TeamService.parseGameResultsToList(results.getString("results"));
                 List<GameResult> gameResults = new ArrayList<>();
@@ -300,6 +301,34 @@ public class TeamsDB {
         }
 
         return gameResult;
+    }
+
+    public List<GameResult> GetGameResultsByMatchId(int matchId, Guild guild){
+        ResultSet results;
+        List<GameResult> gameResults = new ArrayList<>();
+        String sql = String.format("""
+                SELECT *
+                from gameResults
+                where matchId = '%x';
+                """, matchId);
+        try {
+            PreparedStatement stmt = teamsConn.prepareStatement(sql);
+            results = stmt.executeQuery();
+            while(results.next()) {
+                Team winningTeam = GetTeamById(results.getString("winningteamid"), guild);
+                GameResult gameResult = new GameResult(results.getInt("matchid"), winningTeam,
+                        results.getString("replayStream"),
+                        results.getString("replayFileExtension"),
+                        results.getString("replayFileName"));
+                gameResult.setId(results.getInt("id"));
+                gameResults.add(gameResult);
+
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return gameResults;
     }
 
     private String CreateTeamsTable(){

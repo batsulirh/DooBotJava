@@ -139,7 +139,6 @@ public class TeamListener extends ListenerAdapter {
             String[] requestedTime = msg.getContentRaw().split(" ");
             Date date = teamService.parseMatchTime(requestedTime[1]);
 
-            // Need to pass matchup to retrieve match
             // teamsDB.GetMatch()
             // teamsDB.EditMatch()
             msgChannel.sendMessage("Your match time is now set to: " + date.toString() +
@@ -165,15 +164,20 @@ public class TeamListener extends ListenerAdapter {
                     String attachmentString = teamService.printContents(passedAttachment);
                     GameResult gameResult = new GameResult(currentMatch.getId(), winningTeam,
                             attachmentString, passedAttachment.getFileExtension(), passedAttachment.getFileName());
-                    currentMatch.addGameResult(gameResult);
+
+                    teamsDB.AddGameResult(gameResult);
+                    List<GameResult> gameResultsList= teamsDB.GetGameResultsByMatchId(currentMatch.getId(), guild);
+                    currentMatch.setGameResults(gameResultsList);
+                    teamsDB.EditMatch(currentMatch);
+
 
                     int threshold =  (currentMatch.getGames()/2) + 1;
                     int teamOneWins = 0;
                     int teamTwoWins = 0;
                     for(GameResult result : currentMatch.getGameResults()){
-                        if(result.getWinningTeam().equals(currentMatch.getTeamOne())){
+                        if(result.getWinningTeam().getId() == currentMatch.getTeamOne().getId()){
                             teamOneWins++;
-                        }else if(result.getWinningTeam().equals(currentMatch.getTeamTwo())){
+                        }else if(result.getWinningTeam().getId() == currentMatch.getTeamTwo().getId()){
                             teamTwoWins++;
                         }
                     }
