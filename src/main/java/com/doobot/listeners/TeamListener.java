@@ -29,10 +29,11 @@ public class TeamListener extends ListenerAdapter {
         Message msg = event.getMessage();
         MessageChannel msgChannel = msg.getChannel();
         Guild guild = event.getGuild();
+        Category messageCategory = msg.getCategory();
 
 
         if (event.getAuthor().isBot()) {
-
+            return;
         } else if (msg.getContentDisplay().equals("!help")) {
             String helpMessage = teamService.GetHelpInfo(requestUser);
             msgChannel.sendMessage(helpMessage).queue();
@@ -137,17 +138,33 @@ public class TeamListener extends ListenerAdapter {
 
 
         } else if (msg.getContentDisplay().startsWith("!setTime")) {
-            String[] requestedTime = msg.getContentRaw().split(" ");
-            Date date = teamService.parseMatchTime(requestedTime[1]);
+            String requestedTime = msg.getContentRaw().substring(9);
+            Date matchTime = teamService.parseMatchTime(requestedTime);
 
-            // teamsDB.GetMatch()
-            // teamsDB.EditMatch()
-            msgChannel.sendMessage("Your match time is now set to: " + date.toString() +
-                    "\n" +
-                    "When setting up the lobby for this series, please remember to set the team names to their respective team names.\n" +
-                    "Please also be sure to capture replays for every match played. If a replay is not captured, then that match must be replayed.\n" +
-                    "\n" +
-                    "GLHF!").queue();
+
+            if(messageCategory == null) {
+                msgChannel.sendMessage("This command is only available inside a Match's text channel").queue();
+                return;
+            } else if (matchTime == null) {
+                msgChannel.sendMessage("Please enter date in MM/dd/yyyy hh:mmAM/PM format " +
+                        "and ahead of the current time.").queue();
+                return;
+            }
+            Match match = teamsDB.GetMatchByCategoryId(messageCategory.getId(), guild);
+            match.setMatchTime(matchTime);
+            String dbError = teamsDB.EditMatch(match);
+
+            if (dbError.isEmpty()){
+                msgChannel.sendMessage("Your match time is now set to: " + matchTime.toString() +
+                        "\n" +
+                        "When setting up the lobby for this series, please remember to set the team names to their respective team names.\n" +
+                        "Please also be sure to capture replays for every match played. If a replay is not captured, then that match must be replayed.\n" +
+                        "\n" +
+                        "GLHF!").queue();
+            } else {
+                msgChannel.sendMessage("Error setting match time - " + dbError).queue();
+            }
+
 
         } else if (msg.getContentDisplay().startsWith("!report")) {
             String[] splitString = msg.getContentRaw().split(" ");
@@ -195,7 +212,6 @@ public class TeamListener extends ListenerAdapter {
                     teamsDB.EditMatch(currentMatch);
                 }else{
                     msgChannel.sendMessage("Sorry, I don't think that team is playing in this match! ").queue();
-                    return;
                 }
             }
         } else if (msg.getContentDisplay().equals("!confirm")) {
@@ -243,6 +259,49 @@ public class TeamListener extends ListenerAdapter {
             }
 
         } else if (msg.getContentDisplay().equals("!reset")) {
+            if (messageCategory == null) {
+                msgChannel.sendMessage("This command is only available inside a Match's text channel.").queue();
+                return;
+            }
+            msgChannel.sendMessage("Series score will be reset to 0 - type !reset-confirm to continue...").queue();
+
+        } else if (msg.getContentDisplay().equals("!reset-confirm")) {
+            if (messageCategory == null) {
+                msgChannel.sendMessage("This command is only available inside a Match's text channel.").queue();
+                return;
+            }
+            try {
+                List<Message> msgHistory =  msgChannel.getHistoryBefore(msg.getId(), 3)
+                                            .submit().get().getRetrievedHistory();
+
+                boolean resetCalled = msgHistory.stream()
+                        .anyMatch(m -> (m.getMember().getId().equals(msg.getMember().getId()))
+                                && m.getContentDisplay().startsWith("!reset"));
+
+                if (resetCalled) {
+                    Match match = teamsDB.GetMatchByCategoryId(messageCategory.getId(), guild);
+
+
+                    String errorString = teamsDB.DeleteGameResults(match.getGameResults());
+                    if(!errorString.isEmpty())
+                    {
+                        msgChannel.sendMessage("Error resetting score - " + errorString).queue();
+                    } else {
+                        match.setMatchWinner(null);
+                        match.setGameResults(null);
+                        String result = teamsDB.EditMatch(match);
+                        msgChannel.sendMessage("Series Score has now been reset.").queue();
+                    }
+
+                } else {
+                    msgChannel.sendMessage("Initiate a score reset with the !reset command first!").queue();
+                }
+
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+
+
 
         } else if (msg.getContentDisplay().equals("!listTeams")) {
 
