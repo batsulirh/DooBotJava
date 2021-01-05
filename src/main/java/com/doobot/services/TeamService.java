@@ -8,6 +8,9 @@ import net.dv8tion.jda.api.entities.Message;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class TeamService {
@@ -25,29 +28,16 @@ public class TeamService {
                 "!reset - Resets the series score\n";
     }
 
-    public Date parseMatchTime(String messageString){
+    public Date parseMatchTime(String messageString) {
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy hh:mma", Locale.US);
+            formatter.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
-        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy hh:mm a", Locale.US);
-        formatter.setTimeZone(TimeZone.getTimeZone("America/New_York"));
-
-        StringTokenizer tokens = new StringTokenizer(messageString, " ");
-        Date date;
-        if(tokens.countTokens() == 4) {
-            try {
-                tokens.nextToken();
-                String dateString = tokens.nextToken();
-                String timeString = tokens.nextToken();
-                String periodString = tokens.nextToken();
-
-                String concatenatedString = dateString +  " " + timeString + " " + periodString;
-                date = formatter.parse(concatenatedString);
-
+            Date date = formatter.parse(messageString);
+            if(date.compareTo(formatter.parse(LocalDateTime.now().toString())) >= 1)
                 return date;
-            } catch (ParseException e) {
-
-                e.printStackTrace();
-                return null;
-            }
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -71,6 +61,9 @@ public class TeamService {
     }
 
     public static String parseGameResultsToString(List<GameResult> gameResults){
+        if (gameResults == null)
+            return "";
+
         StringBuilder resultString = new StringBuilder();
         for (GameResult result : gameResults) {
             if(result != null) {

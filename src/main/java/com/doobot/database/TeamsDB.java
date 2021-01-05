@@ -345,6 +345,34 @@ public class TeamsDB {
         return gameResults;
     }
 
+    public String DeleteGameResults(List<GameResult> gameResults){
+        StringBuilder idsToDelete = new StringBuilder();
+        String errorString = "";
+
+        if(gameResults == null || gameResults.isEmpty())
+            return "There are no game records!";
+
+        for (GameResult gameResult : gameResults){
+            if(!idsToDelete.isEmpty())
+                idsToDelete.append(",");
+            idsToDelete.append(gameResult.getId());
+        }
+
+        try {
+            String sql = String.format("""
+                    DELETE FROM gameResults
+                    WHERE id in (%s);
+                """, idsToDelete);
+
+            Statement stmt = teamsConn.createStatement();
+            stmt.execute(sql);
+        } catch (SQLException ex){
+            ex.printStackTrace();
+        }
+
+        return errorString;
+    }
+
     private String CreateTeamsTable(){
         return """
                 CREATE TABLE IF NOT EXISTS teams (
